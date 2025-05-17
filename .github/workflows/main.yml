@@ -1,23 +1,26 @@
-name: Windows NoMachine RDP
+name: LiteManager Server Setup
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
-  build:
+  install-litemanager:
     runs-on: windows-latest
     timeout-minutes: 360
 
     steps:
-      - name: Download NoMachine
+      - name: Download LiteManager Server
         run: |
-          Invoke-WebRequest -Uri "https://download.nomachine.com/download/8.11/Windows/nomachine_8.11.3_1_x64.exe" -OutFile "nx.exe"
+          Invoke-WebRequest -Uri "https://litemanager.com/soft/litemanager_free_server.msi" -OutFile "lmserver.msi"
 
-      - name: Install NoMachine
-        run: |
-          Start-Process -FilePath ".\nx.exe" -ArgumentList "/S" -Wait
+      - name: Install LiteManager Server
+        run: Start-Process msiexec.exe -ArgumentList "/i lmserver.msi /quiet" -Wait
 
-      - name: Display IP and Port Info
+      - name: Configure Firewall for LiteManager
         run: |
-          $ip = (Invoke-RestMethod -Uri "http://ipinfo.io/json").ip
-          Write-Host "Connect to: $ip on port 4000 or the default NoMachine port"
+          netsh advfirewall firewall add rule name="LiteManager" dir=in action=allow protocol=TCP localport=5650
+          netsh advfirewall firewall add rule name="LiteManager UDP" dir=in action=allow protocol=UDP localport=5650
+
+      - name: Get Public IP
+        run: |
+          Invoke-RestMethod -Uri "http://ifconfig.me" | Out-File ip.txt
+          Get-Content ip.txt
