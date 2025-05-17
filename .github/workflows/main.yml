@@ -1,23 +1,22 @@
-name: Windows
+name: Ubuntu VPS with NoMachine GUI
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
-
+  start-vps:
+    runs-on: ubuntu-latest
     steps:
-    - name: Download NoMachine
+    - name: Install XFCE Desktop + NoMachine
       run: |
-        Invoke-WebRequest -Uri "https://download.nomachine.com/download/8.11/Windows/nomachine_8.11.3_1_x64.exe" -OutFile "nx.exe"
-        Start-Process -FilePath ".\nx.exe" -ArgumentList "/S" -Wait
+        sudo apt update
+        sudo apt install -y xfce4 xfce4-goodies xrdp wget
+        wget https://download.nomachine.com/download/8.11/Linux/nomachine_8.11.3_1_amd64.deb
+        sudo dpkg -i nomachine_8.11.3_1_amd64.deb || sudo apt --fix-broken install -y
+        sudo ufw allow 4000
+        echo "Done installing NoMachine"
 
-    - name: Show IP Address and Credentials
+    - name: Show IP address
       run: |
-        $ip = (Invoke-WebRequest -Uri "http://ipinfo.io/ip").Content.Trim()
-        $user = $env:USERNAME
-        Write-Host "🔑 NoMachine Access Info:"
-        Write-Host "🌐 IP Address: $ip"
-        Write-Host "👤 Username: $user"
-        Write-Host "🔒 Password: Not set - You may need to set it manually"
+        echo "Your public IP is:"
+        curl ifconfig.me
