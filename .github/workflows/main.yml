@@ -1,22 +1,23 @@
-name: Ubuntu VPS with NoMachine GUI
+name: Windows NoMachine RDP
 
 on:
   workflow_dispatch:
 
 jobs:
-  start-vps:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install XFCE Desktop + NoMachine
-      run: |
-        sudo apt update
-        sudo apt install -y xfce4 xfce4-goodies xrdp wget
-        wget https://download.nomachine.com/download/8.11/Linux/nomachine_8.11.3_1_amd64.deb
-        sudo dpkg -i nomachine_8.11.3_1_amd64.deb || sudo apt --fix-broken install -y
-        sudo ufw allow 4000
-        echo "Done installing NoMachine"
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
 
-    - name: Show IP address
-      run: |
-        echo "Your public IP is:"
-        curl ifconfig.me
+    steps:
+      - name: Download NoMachine
+        run: |
+          Invoke-WebRequest -Uri "https://download.nomachine.com/download/8.11/Windows/nomachine_8.11.3_1_x64.exe" -OutFile "nx.exe"
+
+      - name: Install NoMachine
+        run: |
+          Start-Process -FilePath ".\nx.exe" -ArgumentList "/S" -Wait
+
+      - name: Display IP and Port Info
+        run: |
+          $ip = (Invoke-RestMethod -Uri "http://ipinfo.io/json").ip
+          Write-Host "Connect to: $ip on port 4000 or the default NoMachine port"
